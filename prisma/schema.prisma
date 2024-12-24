@@ -1,0 +1,44 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_URL") // uses connection pooling
+  directUrl = env("POSTGRES_DIRECT_URL") // uses a direct connection
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+model User {
+  username              String   @id
+  name                  String?
+  description           String?
+  created_at            DateTime
+  followers_count       Int?
+  friends_count         Int?
+  profile_image_url     String?
+  profile_banner_url    String?
+  statuses_count        Int?
+  persona               String?
+  personaReasoning      String?  @db.Text
+  tweets                Tweet[]
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  isCurrentlyProcessing Boolean  @default(false)
+
+  @@map("users")
+}
+
+model Tweet {
+  id             Int      @id @default(autoincrement())
+  full_text      String?  @db.Text
+  created_at     DateTime
+  retweet_count  Int?
+  favorite_count Int?
+  reply_count    Int?
+  retweeted      Boolean?
+  user           User     @relation(fields: [userId], references: [username])
+  userId         String
+
+  @@map("submissions")
+}

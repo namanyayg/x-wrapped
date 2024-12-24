@@ -1,0 +1,35 @@
+{
+  "name": "x-persona-ai",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "postbuild": "prisma generate",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@next/third-parties": "^14.2.5",
+    "@prisma/client": "^5.18.0",
+    "dotenv": "^16.4.5",
+    "html2canvas": "^1.4.1",
+    "lucide-react": "^0.456.0",
+    "next": "14.2.5",
+    "openai": "^4.55.1",
+    "prisma": "^5.18.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
