@@ -6,4 +6,4 @@ I wanted to reflect on my X journey so far, and this is my way of giving back to
 
 [Get your X Wrapped](https://x.nmn.gl/)
 
-![image](https://github.com/user-attachments/assets/0eeec1c2-89d6-4386-833e-97b493885541)
+![opengraph-image](https://github.com/user-attachments/assets/cbaf6106-b5c8-4ebd-b20a-ef47f7d82feb)
