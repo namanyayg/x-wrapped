@@ -56,7 +56,7 @@ export default async function UserAnalysis({ params }: { params: { username: str
 
   console.log('User data:', userData)
 
-  if (!userData) {
+  if (!userData || !userData.username) {
     return <div className="bg-white text-center text-gray-500 p-8">User not found</div>;
   }
 

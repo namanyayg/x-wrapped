@@ -20,9 +20,9 @@ const getOrFetchUser = async (username: string) => {
   console.log('ROUTE API User found in db', userInDb?.username)
   if (userInDb) {
     // Check if user was created after Dec 20th
-    const createdAt = new Date(userInDb.created_at);
+    const updatedAt = new Date(userInDb.updatedAt);
     const dec20th = new Date('2023-12-20');
-    if (createdAt > dec20th) {
+    if (updatedAt > dec20th) {
       // @ts-ignore
       userInDb.profile_image_url = userInDb.profile_image_url || userInDb.profile_image_url_https
       // @ts-ignore
