@@ -8,22 +8,27 @@ import { User, Tweet } from '@prisma/client'
 const getOrFetchUser = async (username: string) => {
   console.log('ROUTE API Fetching user', username)
   // if a user already exists in the database, return it
-  // const user = await prisma.user.findUnique({
-  //   where: {
-  //     username,
-  //   },
-  //   include: {
-  //     tweets: true,
-  //   },
-  // })
-  // console.log('ROUTE API User found in db', user?.username)
-  // if (user) {
-  //   // @ts-ignore
-  //   user.profile_image_url = user.profile_image_url || user.profile_image_url_https
-  //   // @ts-ignore
-  //   user.profile_image_url = user.profile_image_url?.replace('_normal', '_400x400')
-  //   return user;
-  // }
+  const userInDb = await prisma.user.findUnique({
+    where: {
+      username,
+    },
+    include: {
+      tweets: true,
+    },
+  })
+  console.log('ROUTE API User found in db', userInDb?.username)
+  if (userInDb) {
+    // Check if user was created after Dec 20th
+    const createdAt = new Date(userInDb.created_at);
+    const dec20th = new Date('2023-12-20');
+    if (createdAt > dec20th) {
+      // @ts-ignore
+      userInDb.profile_image_url = userInDb.profile_image_url || userInDb.profile_image_url_https
+      // @ts-ignore
+      userInDb.profile_image_url = userInDb.profile_image_url?.replace('_normal', '_400x400')
+      return userInDb;
+    }
+  }
   // otherwise, fetch it and save it to the database
   let userData, raw
   // @ts-ignore
