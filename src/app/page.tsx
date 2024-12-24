@@ -69,13 +69,12 @@ export default function Home() {
       if (userData) {
         router.push(`/u/${username}`);
       } else {
-        // You might want to show an error message here
+        setIsLoading(false);
         console.error('No user data found');
       }
     } catch (error) {
-      console.error('Error:', error);
-    } finally {
       setIsLoading(false);
+      console.error('Error:', error);
     }
   };
 
