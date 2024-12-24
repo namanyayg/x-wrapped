@@ -3,8 +3,6 @@ import { useRef, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from 'lucide-react';
 
-import Leaderboard from "@/components/Leaderboard";
-
 const getUserData = async (username: string) => {
   const baseUrl = process.env.NODE_ENV === 'development' 
     ? 'http://localhost:3000' 
@@ -126,7 +124,7 @@ export default function Home() {
         )}
       </div>
 
-      <Leaderboard />
+      {/* <Leaderboard /> */}
     </main>
   );
 }
