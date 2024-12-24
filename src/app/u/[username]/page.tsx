@@ -19,12 +19,15 @@ interface UserData {
 async function getUserData(username: string): Promise<UserData | null> {
   const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://x.nmn.gl';
   try {
+    console.log('Fetching user data for', username)
     const apiUrl = `${baseUrl}/api/analyze/${username}`
     const response = await fetch(apiUrl);
+    console.log('Response status:', response.status)
     if (!response.ok) {
       throw new Error('Failed to fetch user data');
     }
     const data = await response.json();
+    console.log('Data:', data)
     if (!data) {
       return null;
     }
@@ -50,6 +53,8 @@ export async function generateMetadata({ params }: { params: { username: string 
 
 export default async function UserAnalysis({ params }: { params: { username: string } }) {
   const userData = await getUserData(params.username.toLowerCase());
+
+  console.log('User data:', userData)
 
   if (!userData) {
     return <div className="bg-white text-center text-gray-500 p-8">User not found</div>;
