@@ -28,7 +28,7 @@ const Header = ({ user }: { user: UserData }) => {
   return (
     <div className="text-center bg-black/50 px-8 py-4 rounded-2xl opacity-70 mb-2 absolute top-0 left-0 right-0">
       <h2 className="flex items-center justify-center">
-        <img src={user.profile_image_url} alt={user.name} className="w-8 h-8 rounded-full mr-2" />
+        <img src={user.profile_image_url} alt={user.name || ''} className="w-8 h-8 rounded-full mr-2" />
         {user.name}&rsquo;s X Wrapped
       </h2>
     </div>
@@ -87,7 +87,7 @@ const Slide2 = ({ user }: { user: UserData }) => (
       </AnimatedText>
       <AnimatedText>
         <p className="text-xl">
-          That's equivalent to {getWordEquivalency(user.stats?.total_words || 0)} 📚
+          That&rsquo;s equivalent to {getWordEquivalency(user.stats?.total_words || 0)} 📚
         </p>
       </AnimatedText>
     </div>
@@ -147,7 +147,7 @@ const Slide4 = ({ user }: { user: UserData }) => (
       </AnimatedText>
       <AnimatedText>
         <p className="text-xl">
-          That's the same as {getEngagementEquivalency(user.stats?.total_replies || 0)}!
+          That&rsquo;s the same as {getEngagementEquivalency(user.stats?.total_replies || 0)}!
         </p>
       </AnimatedText>
     </div>

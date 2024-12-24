@@ -16,8 +16,8 @@ export interface Tweet {
 
 export interface User {
   username: string;
-  screen_name: string;
-  name: string;
+  screen_name?: string;
+  name?: string | null;
   displayName?: string;
   description: string | null;
   followers_count: number;

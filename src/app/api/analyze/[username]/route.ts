@@ -6,7 +6,7 @@ import { User, Tweet, Stats } from '@/types'
 
 export const maxDuration = 60
 
-const getOrFetchUser = async (username: string) => {
+const getOrFetchUser = async (username: string): Promise<User | null> => {
   console.log('ROUTE API Fetching user', username)
   // if a user already exists in the database, return it
   const userInDb = await prisma.user.findUnique({
@@ -23,44 +23,44 @@ const getOrFetchUser = async (username: string) => {
     const updatedAt = new Date(userInDb.updatedAt);
     const dec20th = new Date('2023-12-20');
     if (updatedAt > dec20th) {
-      // @ts-ignore
-      userInDb.profile_image_url = userInDb.profile_image_url || userInDb.profile_image_url_https
-      // @ts-ignore
-      userInDb.profile_image_url = userInDb.profile_image_url?.replace('_normal', '_400x400')
-      return userInDb;
+      return sanitizeUserData(userInDb);
     }
   }
+
   // otherwise, fetch it and save it to the database
-  let userData, raw
-  // @ts-ignore
-  const { user, raw: rawData } = await fetchUserWithTweets(username);
-  userData = user
-  raw = rawData
+  const result = await fetchUserWithTweets(username);
+  if (!result) {
+    return null;
+  }
+  const { user: userData, raw } = result;
+  
   if (!userData) {
     console.error('No user data found')
     return null;
   }
+
   const userToSave = {
     username: userData.screen_name.toLowerCase(),
-    name: userData.name,
-    description: userData.description,
+    name: userData.name || '',
+    description: userData.description || '',
     created_at: userData.created_at ? new Date(userData.created_at) : new Date(),
-    followers_count: userData.followers_count,
-    friends_count: userData.friends_count,
-    profile_image_url: userData.profile_image_url || userData.profile_image_url_https,
-    profile_banner_url: userData.profile_banner_url,
-    statuses_count: userData.statuses_count,
+    followers_count: userData.followers_count || 0,
+    friends_count: userData.friends_count || 0,
+    profile_image_url: userData.profile_image_url || '',
+    profile_banner_url: userData.profile_banner_url || '',
+    statuses_count: userData.statuses_count || 0,
     tweets: {
       create: userData.tweets.map((t: any) => ({
-        full_text: t.full_text,
+        full_text: t.full_text || '',
         created_at: t.created_at ? new Date(t.created_at) : new Date(),
-        retweet_count: t.retweet_count,
-        favorite_count: t.favorite_count,
-        reply_count: t.reply_count,
-        retweeted: t.retweeted,
+        retweet_count: t.retweet_count || 0,
+        favorite_count: t.favorite_count || 0,
+        reply_count: t.reply_count || 0,
+        retweeted: t.retweeted || false,
       })),
     }
   }
+
   // save the user to the database
   await prisma.user.upsert({
     where: {
@@ -72,7 +72,7 @@ const getOrFetchUser = async (username: string) => {
       tweets: true,
     },
   })
-  // Now fetch and return the user from db
+
   const userFromDb = await prisma.user.findUnique({
     where: {
       username: username.toLowerCase(),
@@ -81,8 +81,33 @@ const getOrFetchUser = async (username: string) => {
       tweets: true,
     },
   })
-  return userFromDb
+
+  return userFromDb ? sanitizeUserData(userFromDb) : null;
 }
+
+const sanitizeUserData = (user: any): User => {
+  return {
+    username: user.username || '',
+    name: user.name || '',
+    description: user.description || '',
+    created_at: user.created_at?.toISOString() || new Date().toISOString(),
+    followers_count: user.followers_count || 0,
+    friends_count: user.friends_count || 0,
+    profile_image_url: user.profile_image_url || '',
+    profile_banner_url: user.profile_banner_url || '',
+    tweets: (user.tweets || []).map((tweet: any) => ({
+      full_text: tweet.full_text || '',
+      created_at: tweet.created_at || new Date(),
+      retweet_count: tweet.retweet_count || 0,
+      favorite_count: tweet.favorite_count || 0,
+      reply_count: tweet.reply_count || 0,
+      retweeted: tweet.retweeted || false,
+      views: tweet.views || 0,
+      quotes: tweet.quotes || 0,
+      bookmarks: tweet.bookmarks || 0,
+    }))
+  };
+};
 
 /**
  * Get the user's yearly stats by summing up data for all tweets
@@ -90,7 +115,7 @@ const getOrFetchUser = async (username: string) => {
  * @param userData 
  * @returns 
  */
-const getUserYearlyStats = async (userData: User & { tweets: Tweet[] }): Promise<Stats> => {
+const getUserYearlyStats = async (userData: User): Promise<Stats> => {
   const stats: Stats = {
     total_tweets: 0,
     total_retweets: 0,
@@ -98,6 +123,10 @@ const getUserYearlyStats = async (userData: User & { tweets: Tweet[] }): Promise
     total_replies: 0,
     total_words: 0,
     monthly_stats: {},
+  }
+
+  if (!userData.tweets) {
+    return stats;
   }
 
   let bestTweet: Tweet | null = null;
@@ -150,7 +179,7 @@ export async function GET(req: Request, { params }: { params: { username: string
     return Response.json({ error: 'User not found' });
   }
   
-  const user = await getOrFetchUser(username);
+  const user: User | null = await getOrFetchUser(username);
   if (!user) {
     return Response.json({ error: 'User not found' });
   }
