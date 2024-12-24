@@ -1,9 +1,9 @@
-# Hackernews AI
+# X Wrapped
 
-Is your HN history as good as you think it is?
+I started using X in 2024 and I'm glad to have made many friends and learn a lot of new things.
 
-Submit your HN username for a reality check
+I wanted to reflect on my X journey so far, and this is my way of giving back to the community.
 
-[Analyze your HN](https://xtype.nmn.gl/)
+[Get your X Wrapped](https://x.nmn.gl/)
 
 ![image](https://github.com/user-attachments/assets/0eeec1c2-89d6-4386-833e-97b493885541)

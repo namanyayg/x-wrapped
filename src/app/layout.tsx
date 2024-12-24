@@ -7,17 +7,17 @@ import Footer from "@/components/Footer";
 const font = Rubik({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "X Persona Analyzer",
-  description: "What's your Twitter personality? Get your AI-powered analysis",
+  title: "X Wrapped",
+  description: "Review your year on X",
   openGraph: {
     images: [
-      "https://xtype.nmn.gl/og-image.png"
+      "https://x.nmn.gl/og-image.png"
     ]
   },
   icons: {
     icon: "/favicon.png"
   },
-  metadataBase: new URL('https://xtype.nmn.gl/')
+  metadataBase: new URL('https://x.nmn.gl/')
 };
 
 export default function RootLayout({
@@ -27,8 +27,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-white h-full">
-      <body className={`${font.className} bg-white min-h-full flex flex-col`}>
-        <main className="flex-1 flex items-center justify-center bg-white">
+      <body className={`${font.className} min-h-full flex flex-col`}>
+        <main className="flex-1 flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
           {children}
         </main>
         <Footer />

@@ -56,7 +56,7 @@ export default async function UserAnalysis({ params }: { params: { username: str
   }
 
   return (
-    <main className="bg-white text-gray-800">
+    <main className="min-w-[380px] w-[400px] max-w-lg text-gray-800">
       <Analysis user={userData} />
     </main>
   );

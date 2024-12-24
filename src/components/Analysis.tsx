@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import html2canvas from 'html2canvas';
+import { motion, AnimatePresence } from 'framer-motion';
 // import Leaderboard from "@/components/Leaderboard";
 
 interface UserData {
@@ -26,9 +27,105 @@ interface UserData {
   };
 }
 
-const ShareButton = () => {
+interface SlideProps {
+  user: UserData;
+  slideIndex: number;
+  isActive: boolean;
+}
+
+type StatDisplay = {
+  label: string;
+  value: number | string;
+  suffix?: string;
+};
+
+const Header = ({ user }: { user: UserData }) => {
+  return (
+    <div className="text-center">
+      <h2 className="text-2xl mb-2 flex items-center justify-center">
+        <img src={user.profile_image_url} alt={user.name} className="w-8 h-8 rounded-full mr-2" />
+        {user.name}&rsquo;s X Wrapped
+      </h2>
+    </div>
+  );
+};
+
+const Slide1 = ({ user }: { user: UserData }) => {
+  return (
+    <div className="space-y-8">
+      <Header user={user} />
+      <div className="space-y-6 text-center">
+        <div>
+          <p className="text-6xl font-bold">{user.stats?.total_tweets?.toLocaleString()}</p>
+          <p className="text-2xl text-gray-400 mt-2">tweets</p>
+        </div>
+        <div>
+          <p className="text-6xl font-bold">{user.stats?.total_words?.toLocaleString()}</p>
+          <p className="text-2xl text-gray-400 mt-2">words written</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Slide2 = ({ user }: { user: UserData }) => {
+  return (
+    <div className="space-y-8">
+      <Header user={user} />
+      <div className="space-y-6">
+        <div className="text-center">
+          <p className="text-2xl mb-2">Total Engagement</p>
+          <p className="text-6xl font-bold">
+            {((user.stats?.total_favorites || 0) + (user.stats?.total_retweets || 0)).toLocaleString()}
+          </p>
+        </div>
+        
+        <div>
+          <p className="text-2xl text-gray-400 mb-4">Breakdown</p>
+          <ol className="space-y-3">
+            <li className="text-xl">❤️ {user.stats?.total_favorites?.toLocaleString()} Likes</li>
+            <li className="text-xl">🔄 {user.stats?.total_retweets?.toLocaleString()} Retweets</li>
+            <li className="text-xl">💬 {user.stats?.total_replies?.toLocaleString()} Replies</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Slide = ({ user, slideIndex, isActive }: SlideProps) => {
+  const getShareText = () => {
+    if (slideIndex === 0) {
+      return `in 2024, i tweeted ${user.stats?.total_tweets?.toLocaleString()} times using ${user.stats?.total_words?.toLocaleString()} words 🤯\n\nget your X wrapped at x.nmn.gl`;
+    }
+    return `my X wrapped 2024:\n📊 ${user.stats?.total_tweets?.toLocaleString()} tweets\n❤️ ${(user.stats?.total_favorites || 0).toLocaleString()} likes\n🔄 ${(user.stats?.total_retweets || 0).toLocaleString()} retweets\n\nsee yours at x.nmn.gl`;
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: isActive ? 1 : 0, x: isActive ? 0 : 100 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.5 }}
+      className="absolute w-full"
+    >
+      <div id={`slide-${slideIndex}`} className="text-white shadow-blue-500/50 shadow-2xl relative before:absolute before:-inset-1 before:rounded-[19px] before:p-[4px] before:bg-gradient-to-r before:from-blue-200 before:via-blue-500 before:to-blue-200">
+        <div className="relative z-10 bg-black bg-gradient-to-b from-blue-950 to-black p-8 rounded-2xl">
+          {slideIndex === 0 ? <Slide1 user={user} /> : <Slide2 user={user} />}
+          <ShareButton 
+            slideIndex={slideIndex} 
+            getShareText={getShareText}
+            user={user}
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const ShareButton = ({ slideIndex, getShareText, user }: { slideIndex: number, getShareText: () => string, user: UserData }) => {
   const generateImage = async () => {
-    const element = document.getElementById('roast-content');
+    const element = document.getElementById(`slide-${slideIndex}`);
     if (!element) return null;
 
     // Temporarily hide the share buttons
@@ -37,7 +134,7 @@ const ShareButton = () => {
 
     // Add credit byline
     const creditLine = document.createElement('p');
-    creditLine.textContent = 'Analyzed by https://xtype.nmn.gl/';
+    creditLine.textContent = 'See your X Wrapped at https://x.nmn.gl/';
     creditLine.style.fontSize = '12px';
     creditLine.style.textAlign = 'center';
     creditLine.style.marginTop = '10px';
@@ -55,20 +152,22 @@ const ShareButton = () => {
   };
 
   const handleTwitterShare = () => {
-    const twitterText = `so apparently my X persona (according to John Rush) is "${user.screen_name}" 🤦‍♂️\n\nfind out yours now 👇 https://xtype.nmn.gl/`;
+    const twitterText = getShareText();
     const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(twitterText)}`;
     window.open(twitterUrl, '_blank');
   };
 
   const handleWebShare = async () => {
+    if (!navigator.share) return;
+    
     const imageUrl = await generateImage();
-    if (imageUrl && navigator.share) {
+    if (imageUrl) {
       const blob = await (await fetch(imageUrl)).blob();
       const file = new File([blob], 'analysis.png', { type: 'image/png' });
       try {
         await navigator.share({
-          title: 'X Persona Analysis',
-          text: `so apparently my X persona (according to John Rush) is "${persona}" 🤦‍♂️\n\nfind out yours now 👇 https://xtype.nmn.gl/`,
+          title: 'X Wrapped',
+          text: getShareText(),
           files: [file]
         });
       } catch (error) {
@@ -80,7 +179,7 @@ const ShareButton = () => {
   return (
     <div className="flex justify-center mt-4 space-x-4">
       <button
-        className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-6 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+        className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 flex items-center space-x-2 shadow-lg"
         onClick={handleTwitterShare}
       >
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -104,77 +203,36 @@ const ShareButton = () => {
   );
 };
 
-const Loader = () => {
-  const loadingTexts = useMemo(() => [
-    "Pulling up your profile",
-    "Analyzing stats",
-  ], []);
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTextIndex((prevIndex) => (prevIndex + 1) % loadingTexts.length);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [loadingTexts]);
-
-  return (
-    <div className="flex flex-col items-center justify-center h-96">
-      <div className={`animate-spin rounded-full h-16 w-16 border-4 border-t-transparent border-blue-500`}></div>
-      <p className={`mt-8 text-xl text-blue-600`}>{loadingTexts[currentTextIndex]}...</p>
-    </div>
-  );
-};
-
 export default function AnalysisClientSide({ user }: { user: UserData }) {
-  const router = useRouter();
-  const username = user.screen_name?.toLowerCase() || user.username?.toLowerCase();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const totalSlides = 2;
 
   return (
-    <>
-      <div className="relative py-8 max-w-md mx-auto px-2">
-        <div id="roast-content" className="bg-black text-white rounded-2xl shadow-xl p-8 border border-gray-800">
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-2 flex items-center justify-center">
-                <img src={user.profile_image_url} alt={user.name} className="w-12 h-12 rounded-full mr-2" />
-                {user.name}&rsquo;s X Wrapped
-              </h2>
-              <h3 className="text-3xl text-blue-400 -m-2">2024</h3>
-            </div>
-            
-            <div className="space-y-6">
-              <div>
-                <p className="text-gray-400">Total Tweets</p>
-                <p className="text-4xl font-bold">{user.stats?.total_tweets}</p>
-              </div>
-
-              <div>
-                <p className="text-gray-400">Total Engagement</p>
-                <p className="text-4xl font-bold">{(user.stats?.total_favorites || 0) + (user.stats?.total_retweets || 0)}</p>
-              </div>
-
-              <div>
-                <p className="text-gray-400">Words Written</p>
-                <p className="text-4xl font-bold">{user.stats?.total_words}</p>
-              </div>
-
-              <div>
-                <p className="text-gray-400">Top Metrics</p>
-                <ol className="mt-2 space-y-1">
-                  <li>1. {user.stats?.total_favorites || 0} Likes</li>
-                  <li>2. {user.stats?.total_retweets || 0} Retweets</li>
-                  <li>3. {user.stats?.total_replies || 0} Replies</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-          <ShareButton />
-        </div>
+    <div className="relative py-8 mx-auto px-2 w-full">
+      <div className="relative h-[600px]">
+        <AnimatePresence mode="wait">
+          <Slide 
+            key={currentSlide}
+            user={user}
+            slideIndex={currentSlide}
+            isActive={true}
+          />
+        </AnimatePresence>
       </div>
-      {/* <Leaderboard /> */}
-    </>
+      
+      {/* Navigation dots */}
+      <div className="flex justify-center mt-4 space-x-2">
+        {Array.from({ length: totalSlides }).map((_, index) => (
+          <button
+            key={index}
+            className={`w-2 h-2 rounded-full ${
+              currentSlide === index ? 'bg-blue-500' : 'bg-gray-300'
+            }`}
+            onClick={() => setCurrentSlide(index)}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
