@@ -1,14 +1,9 @@
 import fs from 'fs'
 import { revalidatePath } from 'next/cache'
-import OpenAI from 'openai'
 import prisma from '@/app/lib/prisma'
 import { fetchUserWithTweets } from '@/app/lib/twitter-api'
 
 import { User, Tweet } from '@prisma/client'
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const getOrFetchUser = async (username: string) => {
   console.log('ROUTE API Fetching user', username)
